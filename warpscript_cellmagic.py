@@ -20,7 +20,7 @@ class Gateway():
     def get_stack(self, var):
         if not(var in self.stack_dict.keys()):
             self.stack_dict[var] = self.instance.entry_point.newStack()
-            print('A WarpScript stack has been created at ' + self.address + ' and is stored under variable "' + var + '".')
+            print('A WarpScript stack stored under the variable "' + var + '" has been created.')
         return self.stack_dict[var]
 
 @magics_class
@@ -34,19 +34,19 @@ class WarpscriptMagics(Magics):
         key = addr + ':' + str(port)
         if not(key in self.gateway_dict.keys()):
             self.gateway_dict[key] = Gateway(addr, port)
-            print('A client connected to the Java gateway at ' + key + ' has been created.')
+            print('A connection with ' + key + ' has been created.')
         return self.gateway_dict[key]
 
     @cell_magic
     @magic_arguments()
     @argument('--stack', '-s',
-                help='The variable that store the resulting WarpScript stack. For each Java gateway, a new variable name creates a new stack. Default to "stack_<gateway_id>".')
+                help='The variable that store the resulting WarpScript stack. For each connection, a new variable name creates a new stack. Default to "stack_<gateway_id>".')
     @argument('--address', '-a',
                 default=DEFAULT_ADDRESS,
-                help='The ip address of the Java gateway with the Warp10 instance. Default to 127.0.0.1.')
+                help='The ip address of the gateway connected to the Warp10 platform or WarpScript module. Default to 127.0.0.1.')
     @argument('--port', '-p',
                 default=DEFAULT_PORT,
-                help='The corresponding port of the Java gateway. Default to 25333.')
+                help='The corresponding port of the gateway. Default to 25333.')
     def warpscript(self, line='', cell=None):
         args = parse_argstring(self.warpscript, line)
         gateway = self.get_gateway(args.address, args.port)
@@ -54,7 +54,7 @@ class WarpscriptMagics(Magics):
         stack = gateway.get_stack(var)
         stack.execMulti(cell)
         self.shell.user_ns[var] = stack
-        print('The WarpScript stack at ' + gateway.address + ' stored under variable "' + var + '" has been executed.')
+        print('The content of the cell has been executed on the stack "' + var + '".')
 
 def load_ipython_extension(ipython):
     magics = WarpscriptMagics(ipython)
