@@ -1,13 +1,34 @@
+"""Jupyter extension that contains a cell magic to execute Warpscript code.
+"""
+
+from collections import MutableSequence
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import (argument, magic_arguments, parse_argstring)
 from py4j.java_gateway import JavaGateway
 from py4j.java_gateway import GatewayParameters
+from py4j.java_gateway import JavaObject
+from py4j.java_gateway import get_method
+from py4j.java_collections import JavaList
+from py4j import protocol as proto
+from py4j.protocol import get_command_part
+from py4j.protocol import get_return_value
+from py4j.protocol import register_output_converter
 from itertools import count
+
+def load_ipython_extension(ipython):
+    """Allow this file to be loaded as a Jupyter extension.
+    """
+    magics = WarpscriptMagics(ipython)
+    ipython.register_magics(magics)
 
 DEFAULT_ADDRESS = '127.0.0.1'
 DEFAULT_PORT = 25333
 
 class Gateway():
+    """An object associated to a connection with a Java Gateway.
+    It can hold multiple active WarpScript stacks.
+    """
+
     ids = count(0)
 
     def __init__(self, addr, port):
@@ -17,24 +38,37 @@ class Gateway():
         self.id = next(self.ids) # the id of the gateway
         self.default_stack_var = 'stack_' + str(self.id)
         
-    def get_stack(self, var):
+    def get_stack(self, var, verbose):
+        """Create a WarpScript stack referenced under var,
+        or retrieve existing one.
+        """
+
         if not(var in self.stack_dict.keys()):
             self.stack_dict[var] = self.instance.entry_point.newStack()
-            print('A WarpScript stack stored under the variable "' + var + '" has been created.')
+            if verbose:
+                print('Creating a new WarpScript stack accessible under variable "' + var + '".')
         return self.stack_dict[var]
 
 @magics_class
 class WarpscriptMagics(Magics):
+    """Holds the cell magic '%%warpscript'.
+    """
 
     def __init__(self, shell):
         super(WarpscriptMagics, self).__init__(shell)
         self.gateway_dict = {} # the keys are ip:port
+        self.verbose = True
 
     def get_gateway(self, addr, port):
+        """Create a connection with a Java gateway located at specified address,
+        or retrieve existing one.
+        """
+
         key = addr + ':' + str(port)
         if not(key in self.gateway_dict.keys()):
             self.gateway_dict[key] = Gateway(addr, port)
-            print('A connection with ' + key + ' has been created.')
+            if self.verbose:
+                print('Starting connection with ' + key + '.')
         return self.gateway_dict[key]
 
     @cell_magic
@@ -47,15 +81,59 @@ class WarpscriptMagics(Magics):
     @argument('--port', '-p',
                 default=DEFAULT_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
+    @argument('--verbose', '-v',
+                default=True,
+                help='Whether to print the stack and log messages or not. Default to True.')
+   
     def warpscript(self, line='', cell=None):
+        """Executes WarpScript code.
+        """
+
+        # parse inline arguments
         args = parse_argstring(self.warpscript, line)
+        self.verbose = args.verbose
+
+        # obtain gateway
         gateway = self.get_gateway(args.address, args.port)
         var = args.stack if not(args.stack is None) else gateway.default_stack_var
-        stack = gateway.get_stack(var)
-        stack.execMulti(cell)
-        self.shell.user_ns[var] = stack
-        print('The content of the cell has been executed on the stack "' + var + '".')
 
-def load_ipython_extension(ipython):
-    magics = WarpscriptMagics(ipython)
-    ipython.register_magics(magics)
+        # obtain stack and execute it
+        stack = Stack(gateway.get_stack(var, self.verbose))
+        stack.execMulti(cell)
+
+        # store resulting stack #TODO USE the gateway see's unknown types as refrences
+        self.shell.user_ns[var] = stack
+        if self.verbose:
+            print(repr(stack))
+
+class Stack(JavaObject):
+    """A wrapper of a WarpScript stack with implementations for usual python methods.
+    """
+
+    def __init__(self, jObj):
+        # jObj.target_id does not return the target_id of py4j v0.10.8 (a bug ?)
+        # As a workaround we use jObj.list.target_id which has the same target_id
+        JavaObject.__init__(self, jObj.list.target_id, jObj.list.gateway_client)
+
+    def __len__(self):
+        return self.depth()
+
+    def __iter__(self):
+        for l in range(len(self)):
+            yield self.get(l)
+    
+    def __repr__(self):
+        lvl = count(0)
+        ret = ''
+        for l in self:
+            c = str(next(lvl))
+            if c == '0':
+                ret += 'top: \t' + repr(l) +'\n'
+            else:
+                ret += c + ': \t' + repr(l) +'\n'
+        return ret
+
+    def __str__(self):
+        listRep = [l for l in self]
+        listRep.reverse()
+        return 'Stack(' + str(listRep) + ')'
