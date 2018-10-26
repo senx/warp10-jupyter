@@ -81,9 +81,10 @@ class WarpscriptMagics(Magics):
     @argument('--port', '-p',
                 default=DEFAULT_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
-    @argument('--verbose', '-v',
-                default=True,
-                help='Whether to print the stack and log messages or not. Default to True.')
+    @argument('--not-verbose', '-v',
+                dest='verbose',
+                action='store_false',
+                help='If flag is used, do not print the stack and log messages.')
    
     def warpscript(self, line='', cell=None):
         """Executes WarpScript code.
@@ -98,7 +99,7 @@ class WarpscriptMagics(Magics):
         var = args.stack if not(args.stack is None) else gateway.default_stack_var
 
         # obtain stack and execute it
-        stack = Stack(gateway.get_stack(var, self.verbose))
+        stack = gateway.get_stack(var, self.verbose)
         stack.execMulti(cell)
 
         # store resulting stack #TODO USE the gateway see's unknown types as refrences
@@ -107,13 +108,11 @@ class WarpscriptMagics(Magics):
             print(repr(stack))
 
 class Stack(JavaObject):
-    """A wrapper of a WarpScript stack with implementations for usual python methods.
+    """A wrapper of a WarpScript stack with implementations for some usual python methods.
     """
 
     def __init__(self, jObj):
-        # jObj.target_id does not return the target_id of py4j v0.10.8 (a bug ?)
-        # As a workaround we use jObj.list.target_id which has the same target_id
-        JavaObject.__init__(self, jObj.list.target_id, jObj.list.gateway_client)
+        JavaObject.__init__(self, jObj._target_id, jObj._gateway_client)
 
     def __len__(self):
         return self.depth()
@@ -137,3 +136,40 @@ class Stack(JavaObject):
         listRep = [l for l in self]
         listRep.reverse()
         return 'Stack(' + str(listRep) + ')'
+
+class Gts(JavaObject):
+    """A wrapper of a Geo Time Serie with implementations for some usual python methods.
+    """
+
+    def __init__(self, jObj):
+        JavaObject.__init__(self, jObj._target_id, jObj._gateway_client)
+
+    def __len__(self):
+        return self.size()
+    
+    def __repr__(self):
+        return self.toString()[:-1].replace('\n=', ', ')
+
+    def __str__(self):
+        return 'Gts(' + repr(self) + ')'
+
+def convert(target_id, gateway_client):
+    """Convert WarpScript stacks and GTS into wrapped objects.
+    """
+
+    jObject = JavaObject(target_id, gateway_client)
+
+    # check if it is a WarpScript stack
+    if 'execMulti' in dir(jObject):
+        return Stack(jObject)
+    
+    # check if it is a GTS
+    elif 'hasElevations' in dir(jObject):
+        return Gts(jObject)
+
+    else:
+        return jObject
+
+register_output_converter(
+    proto.REFERENCE_TYPE, lambda target_id, gateway_client:
+    convert(target_id, gateway_client))
