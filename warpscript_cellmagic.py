@@ -108,7 +108,7 @@ class WarpscriptMagics(Magics):
             print(repr(stack))
 
 class Stack(JavaObject):
-    """A wrapper of a WarpScript stack with implementations for some usual python methods.
+    """A wrapper of a WarpScript stack with implementations for for python print, repr and len.
     """
 
     def __init__(self, jObj):
@@ -138,20 +138,59 @@ class Stack(JavaObject):
         return 'Stack(' + str(listRep) + ')'
 
 class Gts(JavaObject):
-    """A wrapper of a Geo Time Serie with implementations for some usual python methods.
+    """A wrapper of a Geo Time Serie with implementation for python print, repr and len.
     """
 
     def __init__(self, jObj):
         JavaObject.__init__(self, jObj._target_id, jObj._gateway_client)
+        self.gateway = JavaGateway(self._gateway_client)
+        self.max_repr_len = 60
 
     def __len__(self):
         return self.size()
+
+    def full_repr(self):
+        return self.toString()[:-1].replace('\n=', ', ')
     
     def __repr__(self):
-        return self.toString()[:-1].replace('\n=', ', ')
+        if len(self) == 0:
+            return 'Gts(<empty>)'
+        elif len(self.full_repr()) < self.max_repr_len:
+            return self.full_repr()
+        else:
+            return self.full_repr()[:self.max_repr_len-3] + ' ...'
 
     def __str__(self):
-        return 'Gts(' + repr(self) + ')'
+        return 'Gts(' + self.full_repr() + ')'
+
+    # The following methods are examples should you need to extend this object using Java nethods
+    """
+    def valueAtIndex(self, index):
+        return self.gateway.jvm.io.warp10.continuum.gts.GTSHelper.valueAtIndex(self, index)
+
+    def valueAtTick(self, tick):
+        return self.gateway.jvm.io.warp10.continuum.gts.GTSHelper.valueAtTick(self, tick)
+    
+    def tickAtIndex(self, index):
+        return self.gateway.jvm.io.warp10.continuum.gts.GTSHelper.tickAtIndex(self, index)
+
+    def __iter__(self):
+        for index in range(len(self)):
+            yield self.valueAtIndex(index)
+    
+    def values(self):
+        return [val for val in self]
+
+    def ticks(self):
+        return [self.tickAtIndex(index) for index in range(len(self))]
+
+    def toNumpyArray(self):
+        try:
+            import numpy as np
+        except ImportError:
+            raise RuntimeError('You need to install numpy to use method toNumpyArray()')
+        # Do something here
+    """
 
 def convert(target_id, gateway_client):
     """Convert WarpScript stacks and GTS into wrapped objects.
