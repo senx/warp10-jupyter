@@ -107,7 +107,7 @@ class WarpscriptMagics(Magics):
         stack = gateway.get_stack(var, self.verbose)
         stack.execMulti(cell)
 
-        # store resulting stack #TODO USE the gateway see's unknown types as refrences
+        # store resulting stack
         self.shell.user_ns[var] = stack
         if self.verbose:
             print(repr(stack))
@@ -158,12 +158,7 @@ class Gts(JavaObject):
         return self.toString()[:-1].replace('\n=', ', ')
     
     def __repr__(self):
-        if len(self) == 0:
-            return 'Gts(<empty>)'
-        elif len(self.full_repr()) < self.max_repr_len:
-            return self.full_repr()
-        else:
-            return self.full_repr()[:self.max_repr_len-3] + ' ...'
+        return '<GTS with ' + str(len(self)) + ' values>'
 
     def __str__(self):
         return 'Gts(' + self.full_repr() + ')'
