@@ -75,6 +75,9 @@ class WarpscriptMagics(Magics):
     @magic_arguments()
     @argument('--stack', '-s',
                 help='The variable that store the resulting WarpScript stack. For each connection, a new variable name creates a new stack. Default to "stack_<gateway_id>".')
+    @argument('--overwrite', '-o',
+                action='store_true',
+                help='If flag is used, overwrite existing stack stored under used variable.')
     @argument('--address', '-a',
                 default=DEFAULT_ADDRESS,
                 help='The ip address of the gateway connected to the Warp10 platform or WarpScript module. Default to 127.0.0.1.')
@@ -99,6 +102,8 @@ class WarpscriptMagics(Magics):
         var = args.stack if not(args.stack is None) else gateway.default_stack_var
 
         # obtain stack and execute it
+        if args.overwrite and var in gateway.stack_dict.keys():
+            del gateway.stack_dict[var]
         stack = gateway.get_stack(var, self.verbose)
         stack.execMulti(cell)
 
@@ -143,8 +148,8 @@ class Gts(JavaObject):
 
     def __init__(self, jObj):
         JavaObject.__init__(self, jObj._target_id, jObj._gateway_client)
-        self.gateway = JavaGateway(self._gateway_client)
         self.max_repr_len = 60
+        #self.gateway = JavaGateway(self._gateway_client)
 
     def __len__(self):
         return self.size()
