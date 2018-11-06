@@ -77,7 +77,7 @@ class WarpscriptMagics(Magics):
                 help='The variable that store the resulting WarpScript stack. For each connection, a new variable name creates a new stack. Default to "stack_<gateway_id>".')
     @argument('--overwrite', '-o',
                 action='store_true',
-                help='If flag is used, overwrite existing stack stored under used variable.')
+                help='If flag is used, overwrite existing stack stored under used variable with a new one.')
     @argument('--address', '-a',
                 default=DEFAULT_ADDRESS,
                 help='The ip address of the gateway connected to the Warp10 platform or WarpScript module. Default to 127.0.0.1.')
