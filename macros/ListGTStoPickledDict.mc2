@@ -1,0 +1,64 @@
+<%
+    # Documenting the macro
+    '[GTS] BOOLEAN @ListGTStoPickledDict' DOC
+
+    # Check there is two arguments on the stack
+    <% DEPTH 2 < %> <% 'Macro takes two arguments' MSGFAIL %> IFT
+        
+    # Check that top is a boolean indicating whether to use GTS classname or selector
+    <% 1 PICK TYPEOF 'BOOLEAN' != %> <% 'First argument must be a boolean indicating whether to use GTS selector (true) or classname (false)' MSGFAIL %> IFT
+    
+    # Check that second argument is a list of GTS
+    <% 2 PICK TYPEOF 'LIST' != %> <% 'Second argument must be a List of GTS' MSGFAIL %> IFT
+    2 PICK <% <% TYPEOF 'GTS' != %> <% 'Second argument is a list that has an element that is not a GTS' MSGFAIL %> IFT %> FOREACH
+    
+    # Store the arguments
+    'withSelector' STORE
+    'gtsList' STORE
+    
+    # make tickbase of all GTS
+    $gtsList TICKS 'ticks' STORE
+    $ticks [] [] [] $ticks MAKEGTS 'baseGTS' STORE
+    
+    # macro: check not all NaN (for locations and elevations)
+    <% UNIQUE DUP SIZE 1 == SWAP 0 GET ISNaN && %> 'isAllNaN' STORE
+        
+    # Return pickled dict for pandas
+    {
+        # ticks
+        'timestamps' $ticks
+        
+        # loop over list of GTS
+        $gtsList
+        <%
+            'gts' STORE
+            
+            # Make name
+            $gts <% $withSelector %> <% TOSELECTOR %> <% NAME %> IFTE
+            'name' STORE
+        
+            # Put on the same tick base and fill missing values with NaN
+            [ $gts true mapper.replace 0 0 0 ] MAP
+            'mask' STORE
+            [ $mask [ $baseGTS ] [] op.negmask ] APPLY
+            [ SWAP NaN mapper.replace 0 0 0 ] MAP
+            0 GET 'residualSeries' STORE
+            [ $gts $residualSeries ] MERGE SORT
+            'gts' STORE
+        
+            # locations
+            $gts LOCATIONS 'lon' STORE 'lat' STORE
+            <% $lat @isAllNaN ! %> <% $name '.lat' + $lat %> IFT
+            <% $lon @isAllNaN ! %> <% $name '.lon' + $lon %> IFT
+        
+            # elevations
+            $gts ELEVATIONS 'elev' STORE
+            <% $elev @isAllNaN ! %> <% $name '.elev' + $elev %> IFT
+        
+            # values        
+            $name $gts VALUES
+        %>
+        FOREACH
+    }
+    ->PICKLE
+%>

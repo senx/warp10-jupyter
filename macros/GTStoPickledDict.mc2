@@ -1,0 +1,43 @@
+<%
+    # Documenting the macro
+    'GTS BOOLEAN @GTStoPickledDict' DOC
+
+    # Check there is two arguments on the stack
+    <% DEPTH 2 < %> <% 'Macro takes two arguments' MSGFAIL %> IFT
+        
+    # Check that top is a boolean indicating whether to use GTS classname or selector
+    <% 1 PICK TYPEOF 'BOOLEAN' != %> <% 'First argument must be a boolean indicating whether to use GTS selector (true) or classname (false)' MSGFAIL %> IFT
+    
+    # Check that second argument is a GTS
+    <% 2 PICK TYPEOF 'GTS' != %> <% 'Second argument must be a GTS' MSGFAIL %> IFT
+    
+    # Store the arguments
+    'withSelector' STORE
+    'gts' STORE
+    
+    # Make name
+    $gts <% $withSelector %> <% TOSELECTOR %> <% NAME %> IFTE
+    'name' STORE
+    
+    # macro: check not all NaN (for locations and elevations)
+    <% UNIQUE DUP SIZE 1 == SWAP 0 GET ISNaN && %> 'isAllNaN' STORE
+        
+    # Return pickled dict for pandas
+    {
+        # ticks
+        'timestamps' $gts TICKLIST
+        
+        # locations
+        $gts LOCATIONS 'lon' STORE 'lat' STORE
+        <% $lat @isAllNaN ! %> <% $name '.lat' + $lat %> IFT
+        <% $lon @isAllNaN ! %> <% $name '.lon' + $lon %> IFT
+        
+        # elevations
+        $gts ELEVATIONS 'elev' STORE
+        <% $elev @isAllNaN ! %> <% $name '.elev' + $elev %> IFT
+        
+        # values        
+        $name $gts VALUES
+    }
+    ->PICKLE
+%>
