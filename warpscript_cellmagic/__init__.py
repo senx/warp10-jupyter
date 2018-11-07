@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-"""Jupyter extension that contains a cell magic to execute Warpscript code.
+"""Jupyter extension that contains a cell magic to execute WarpScript code.
 """
 
 from collections import MutableSequence
