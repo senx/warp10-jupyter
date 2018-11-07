@@ -13,5 +13,5 @@ Require py4j, jupyter, and optionally pandas and pickle.
 ### Tutorials ###
 
 In the `notebooks/` folder:
-* `WarpScript_example.ipynb` shows how to use cell magics with WarpScript code.
-* `GTS_to_DataFrame.ipynb` shows how to make a Pandas DataFrame from WarpScript GTS.
+* `1_WarpScript_example.ipynb` shows how to use cell magics with WarpScript code.
+* `2_GTS_to_DataFrame.ipynb` shows how to make a Pandas DataFrame from WarpScript GTS.
