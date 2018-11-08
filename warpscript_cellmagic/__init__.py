@@ -29,6 +29,7 @@ from py4j import protocol as proto
 from py4j.protocol import get_command_part
 from py4j.protocol import get_return_value
 from py4j.protocol import register_output_converter
+from py4j.protocol import Py4JJavaError
 from itertools import count
 
 def load_ipython_extension(ipython):
@@ -121,7 +122,12 @@ class WarpscriptMagics(Magics):
         if args.overwrite and var in gateway.stack_dict.keys():
             del gateway.stack_dict[var]
         stack = gateway.get_stack(var, self.verbose)
-        stack.execMulti(cell)
+        try:
+            stack.execMulti(cell)
+        except Py4JJavaError as e:
+            # don't raise an error when a stop exception is caught
+            if not(gateway.instance.jvm.Class.forName("io.warp10.script.WarpScriptStopException").isInstance(e.java_exception)):
+                raise e
 
         # store resulting stack
         self.shell.user_ns[var] = stack
