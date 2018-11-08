@@ -1,6 +1,48 @@
+#
+#   Copyright 2018  SenX S.A.S.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+
 <%
     # Documenting the macro
-    'GTS BOOLEAN @GTStoPickledDict' DOC
+    {
+    'name' 'GTStoPickledDict'
+    'since' '1.2.4'
+    'deprecated' ''
+    'deleted' ''
+    'version' 'all'
+    'tags' [ 'gts' ]
+    'desc'
+      <'
+Convert a GTS into a pickled map of lists. Contrary to macro ListGTStoPickledDict, the list of ticks is ordered as in the GTS and can have duplicates.
+      '>
+    'sig' [ [ [ 'gts:GTS' 'withSelector:BOOLEAN' ]  [ 'result:MAP' ] ] ]
+    'params' {
+      'gts' 'The single GTS to convert'
+      'withSelector' 'Whether to use selector (true) or classname (false) for the keys of the resulting map'
+      'result' 'A pickled map of lists. The lists are the ticks, the values, and if any, the latitudes, longitudes and elevations. The lists are ordered as in the GTS'
+    }
+    'related' [ 'ListGTStoPickledDict' '->PICKLE' ]
+    'examples' [
+      <'
+NEWGTS 'randGTS' RENAME 1 10 <% h RAND RAND NaN RAND ADDVALUE %> FOR
+false
+@GTStoPickledDict
+      '>
+     ]
+    'conf' [ ]
+    } INFO
 
     # Check there is two arguments on the stack
     <% DEPTH 2 < %> <% 'Macro takes two arguments' MSGFAIL %> IFT
@@ -41,3 +83,7 @@
     }
     ->PICKLE
 %>
+'macro' STORE
+// Unit tests
+// None yet
+$macro
