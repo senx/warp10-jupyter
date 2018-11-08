@@ -6,7 +6,7 @@ Jupyter extension that contains a cell magic to execute WarpScript code.
 
 Require py4j, jupyter, and optionally pandas and pickle.
 
-Warp 10 platforms that receive the requests must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
+Warp 10 platforms that receive requests must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
 
 ### Installation from source ###
 
@@ -14,7 +14,7 @@ Warp 10 platforms that receive the requests must embed the [Py4J plugin](https:/
 pip install -e cellmagic
 ```
 
-Then, you can optionally copy the content of `macros/` into the macro folder of the Warp 10 platforms that receive the requests.
+Then, you can optionally copy the content of `macros/` into the macros folder of Warp 10 platforms that receive requests.
 
 ### Tutorials ###
 
