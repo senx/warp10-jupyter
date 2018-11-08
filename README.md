@@ -8,10 +8,18 @@ Require py4j, jupyter, and optionally pandas and pickle.
 
 Warp 10 platforms that receive requests must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
 
-### Installation from source ###
+### Installation ###
+
+From source:
 
 ```
 pip install -e cellmagic
+```
+
+Or from PyPI:
+
+```
+pip install warp10-jupyter
 ```
 
 Then, you can optionally copy the content of `macros/` into the macros folder of Warp 10 platforms that receive requests.
