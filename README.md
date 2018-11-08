@@ -10,7 +10,9 @@ Warp 10 platforms that receive the requests must embed the [Py4J plugin](https:/
 
 ### Installation from source ###
 
-`pip install -e .`
+```
+pip install -e cellmagic
+```
 
 Then, you can optionally copy the content of `macros/` into the macro folder of the Warp 10 platforms that receive the requests.
 

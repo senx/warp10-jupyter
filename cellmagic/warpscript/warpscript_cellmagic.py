@@ -32,12 +32,6 @@ from py4j.protocol import register_output_converter
 from py4j.protocol import Py4JJavaError
 from itertools import count
 
-def load_ipython_extension(ipython):
-    """Allow this file to be loaded as a Jupyter extension.
-    """
-    magics = WarpscriptMagics(ipython)
-    ipython.register_magics(magics)
-
 DEFAULT_ADDRESS = '127.0.0.1'
 DEFAULT_PORT = 25333
 
