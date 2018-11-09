@@ -2,3 +2,5 @@
 .ipynb_checkpoints/
 Untitled*
 warp10_jupyter.egg-info/
+build/
+dist/
