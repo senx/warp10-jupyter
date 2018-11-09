@@ -1,12 +1,14 @@
 # warp10-jupyter #
 
-Jupyter extension that contains a cell magic to execute WarpScript code.
+Jupyter extension that consists in the cell magic `%%warpscript` that execute WarpScript code.
 
 ### Requirements ###
 
-Require py4j, jupyter, and optionally pandas and pickle.
+Require Py4J and Jupyter.
 
-Warp 10 platforms that receive requests must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
+To execute WarpScript code on a target Warp 10 platform with this extension, the target must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
+
+Note that WarpScripts would not be able to use the `FETCH` function unless the property `egress.clients.expose` of the target platform is set to true.
 
 ### Installation ###
 
