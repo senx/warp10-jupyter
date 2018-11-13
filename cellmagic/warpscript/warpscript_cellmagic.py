@@ -17,6 +17,7 @@
 """Implements a cell magic that execute WarpScript code.
 """
 
+import re
 from collections import MutableSequence
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import (argument, magic_arguments, parse_argstring)
@@ -99,6 +100,9 @@ class WarpscriptMagics(Magics):
                 dest='verbose',
                 action='store_false',
                 help='If flag is used, do not print the stack and log messages.')
+    @argument('--replace', '-r',
+                action='store_true',
+                help='If flag is used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.')
    
     def warpscript(self, line='', cell=None):
         """Executes WarpScript code.
@@ -111,6 +115,9 @@ class WarpscriptMagics(Magics):
         # obtain gateway
         gateway = self.get_gateway(args.address, args.port)
         var = args.stack if not(args.stack is None) else gateway.default_stack_var
+
+        # replace %file% patterns with file content
+        cell = re.sub(r'%(\S*)%', lambda p: open(p.group(1), 'r').read(), cell)
 
         # obtain stack and execute it
         if args.overwrite and var in gateway.stack_dict.keys():
