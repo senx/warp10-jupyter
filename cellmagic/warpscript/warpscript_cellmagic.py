@@ -174,7 +174,10 @@ class Gts(JavaObject):
         return self.toString()[:-1].replace('\n=', ', ')
     
     def __repr__(self):
-        return '<GTS with ' + str(len(self)) + ' values>'
+        if len(self):
+            return self.getName() + self.getLabels().toString() + '<' + self.getType().toString() + ', ' + str(len(self)) + ' values>'
+        else:
+            return self.getName() + self.getLabels().toString() + '<empty>'
 
     def __str__(self):
         return 'Gts(' + self.full_repr() + ')'
