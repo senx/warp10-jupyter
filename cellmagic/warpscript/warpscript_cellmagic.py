@@ -117,7 +117,8 @@ class WarpscriptMagics(Magics):
         var = args.stack if not(args.stack is None) else gateway.default_stack_var
 
         # replace %file% patterns with file content
-        cell = re.sub(r'%(\S*)%', lambda p: open(p.group(1), 'r').read(), cell)
+        if args.replace:
+            cell = re.sub(r'%(\S*)%', lambda p: open(p.group(1), 'r').read(), cell)
 
         # obtain stack and execute it
         if args.overwrite and var in gateway.stack_dict.keys():
