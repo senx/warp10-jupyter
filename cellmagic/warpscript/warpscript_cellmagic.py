@@ -122,6 +122,7 @@ class WarpscriptMagics(Magics):
 
         # obtain stack and execute it
         if args.overwrite and var in gateway.stack_dict.keys():
+            gateway.instance.detach(gateway.stack_dict[var])
             del gateway.stack_dict[var]
         stack = gateway.get_stack(var, self.verbose)
         try:
