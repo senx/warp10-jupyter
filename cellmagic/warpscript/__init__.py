@@ -24,6 +24,8 @@ def load_ipython_extension(ipython):
     """
     magics = WarpscriptMagics(ipython)
     ipython.register_magics(magics)
+    ipython.magics_manager.register_alias('mc2', 'warpscript', 'cell')
+    ipython.magics_manager.register_alias('mc2', 'warpscript', 'line')
 
 # Register conversion of Stack and Gts objects in Py4J protocol
 register_output_converter(
