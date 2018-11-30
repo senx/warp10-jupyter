@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-"""Implements cell magics that execute WarpScript code.
+"""Implements cell magics related to WarpScript and Warp 10.
 """
 
 import re
@@ -25,14 +25,13 @@ from py4j.protocol import Py4JJavaError
 import requests
 from .warp10_gateway import Gateway
 
-DEFAULT_ADDRESS = '127.0.0.1'
-DEFAULT_PORT = 25333
+DEFAULT_GATEWAY_ADDRESS = '127.0.0.1'
+DEFAULT_GATEWAY_PORT = 25333
 DEFAULT_EXEC_ENDPOINT = 'https://warp.senx.io/api/v0/exec'
+DEFAULT_UPDATE_ENDPOINT = 'http://127.0.0.1:8080/api/v0/update'
 
 @magics_class
 class WarpscriptMagics(Magics):
-    """Holds magics related to WarpScript.
-    """
 
     def __init__(self, shell):
         super(WarpscriptMagics, self).__init__(shell)
@@ -40,8 +39,8 @@ class WarpscriptMagics(Magics):
         self.verbose = True
 
     def get_gateway(self, addr, port):
-        """Create a connection with a Java gateway located at specified address,
-        or retrieve existing one.
+        """Creates a connection with a Java gateway located at specified address,
+        or retrieves existing one.
         """
 
         key = addr + ':' + str(port)
@@ -59,10 +58,10 @@ class WarpscriptMagics(Magics):
                 action='store_true',
                 help='If flag is used, overwrite existing stack stored under used variable with a new one.')
     @argument('--address', '-a',
-                default=DEFAULT_ADDRESS,
+                default=DEFAULT_GATEWAY_ADDRESS,
                 help='The ip address of the gateway connected to the Warp 10 platform or WarpScript module. Default to 127.0.0.1.')
     @argument('--port', '-p',
-                default=DEFAULT_PORT,
+                default=DEFAULT_GATEWAY_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
     @argument('--not-verbose', '-v',
                 dest='verbose',
@@ -72,7 +71,7 @@ class WarpscriptMagics(Magics):
                 action='store_true',
                 help='If flag is used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.') 
     @argument('--file', '-f',
-                help='Path of a file which content is appended at the beginning of the WarpScript code.')
+                help='Path of a file from which content is appended at the beginning of the WarpScript code.')
       
     def warpscript(self, line='', cell=''):
         """Instanciates or retrieves a WarpScript stack and interacts with it. Requires that the Warp 10 platform embed the Py4J plugin.
@@ -112,13 +111,13 @@ class WarpscriptMagics(Magics):
             return stack
 
     @line_cell_magic
-    @magic_arguments()   
+    @magic_arguments()
     @argument('--endpoint', '-e',
                 default=DEFAULT_EXEC_ENDPOINT,
-                help='The url of the exec endpoint')
+                help='The url of the exec endpoint. Default to https://warp.senx.io/api/v0/exec.')
     @argument('--answer', '-a',
                 default='response',
-                help='The variable that store the result. Default to "response".') 
+                help='The variable that store the result. Default to "response".')
     @argument('--not-verbose', '-v',
                 dest='verbose',
                 action='store_false',
@@ -127,7 +126,7 @@ class WarpscriptMagics(Magics):
                 action='store_true',
                 help='If flag is used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.')
     @argument('--file', '-f',
-                help='Path of a file which content is appended at the beginning of the WarpScript code.')
+                help='Path of a file from which content is appended at the beginning of the WarpScript code.')
    
     def warp10exec(self, line='', cell=''):
         """Post WarpScript code to an exec endpoint and return a parsed JSON list.
@@ -135,7 +134,6 @@ class WarpscriptMagics(Magics):
 
         # parse inline arguments
         args = parse_argstring(self.warp10exec, line)
-        self.verbose = args.verbose
 
         # replace %file% patterns with file content
         if args.replace:
@@ -147,13 +145,51 @@ class WarpscriptMagics(Magics):
 
         # post WarpScript
         answer = requests.post(args.endpoint, cell)
-        print('Status code:', answer.status_code)
         
         # store and output result
         if answer.status_code == 200:
+            print('Status code:', answer.status_code)
             self.shell.user_ns[args.answer] = answer.json()
             if args.verbose:
                 return self.shell.user_ns[args.answer]
         else:
             display(HTML(answer.text))
-        
+
+    @line_cell_magic
+    @magic_arguments()
+    @argument('--endpoint', '-e',
+                default=DEFAULT_UPDATE_ENDPOINT,
+                help='The url of the update endpoint. Default to http://127.0.0.1:8080/api/v0/update.')
+    @argument('--token', '-t',
+                help='Write token.')
+    @argument('--gzip', '-g',
+                action='store_true',
+                help='If flag is used, use gzip encoding.')
+    @argument('--file', '-f',
+                help='Path containing data points to push.')
+
+    def warp10update(self, line='', cell=None):
+        """Push data points from file then/or cell.
+        """
+
+        # parse inline arguments
+        args = parse_argstring(self.warp10update, line)
+        headers = {'X-Warp10-Token': args.token}
+        if args.gzip:
+            headers['Accept-Encoding'] = 'gzip'
+
+        # post data points
+        if not(args.file is None):
+            print('Pushing data points from file ...')
+            answer = requests.post(args.endpoint, headers=headers, data=open(args.file))
+            if answer.status_code == 200:
+                print('Status code:', answer.status_code)
+            else:
+                display(HTML(answer.text))
+        if not(cell is None):
+            print('Pushing data points from cell ...')
+            answer = requests.post(args.endpoint, headers=headers, data=cell)
+            if answer.status_code == 200:
+                print('Status code:', answer.status_code)
+            else:
+                display(HTML(answer.text))
