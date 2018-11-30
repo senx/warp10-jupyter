@@ -14,10 +14,18 @@
 #   limitations under the License.
 #
 
-from .warpscript_cellmagic import WarpscriptMagics
+from py4j import protocol as proto
+from py4j.protocol import register_output_converter
+from .warpscript_magics import WarpscriptMagics
+from .warp10_gateway import convert
 
 def load_ipython_extension(ipython):
     """Allow this package to be loaded as a Jupyter extension.
     """
     magics = WarpscriptMagics(ipython)
     ipython.register_magics(magics)
+
+# Register conversion of Stack and Gts objects in Py4J protocol
+register_output_converter(
+    proto.REFERENCE_TYPE, lambda target_id, gateway_client:
+    convert(target_id, gateway_client))
