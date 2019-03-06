@@ -6,7 +6,7 @@ Jupyter extension that consists in the cell magic `%%warpscript` that execute Wa
 
 Require Py4J and Jupyter.
 
-To execute WarpScript code on a target Warp 10 platform with this extension, the target must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
+To execute WarpScript code on a Warp 10 platform with this extension, the platform must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j).
 
 Note that WarpScripts would not be able to use the `FETCH`, `FIND`, nor `FINDSTATS` functions, unless the property `egress.clients.expose` of the target platform is set to true.
 
