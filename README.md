@@ -31,3 +31,4 @@ Then, you can optionally copy the content of `macros/` into the macros folder of
 In the `notebooks/` folder:
 * `1_WarpScript_example.ipynb` shows how to use cell magics with WarpScript code.
 * `2_GTS_to_DataFrame.ipynb` shows how to make a Pandas DataFrame from WarpScript GTS.
+You can also read our a blog [post](https://blog.senx.io/warpscript-in-jupyter-notebooks/) on the subject.
