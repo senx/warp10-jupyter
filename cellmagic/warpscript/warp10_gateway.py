@@ -39,8 +39,15 @@ class Gateway():
         or retrieve existing one.
         """
 
+        if var in vars():
+            self.stack_dict[var]
+
         if not(var in self.stack_dict.keys()):
-            self.stack_dict[var] = self.instance.entry_point.newStack()
+            # try first to use an entry point that was started in the Java side
+            try:
+                self.stack_dict[var] = self.instance.entry_point.newStack()
+            except:
+                self.stack_dict[var] = self.instance.jvm.io.warp10.Py4JEntryPoint({'warp.timeunits': 'us' })
             if verbose:
                 print('Creating a new WarpScript stack accessible under variable "' + var + '".')
         return self.stack_dict[var]
