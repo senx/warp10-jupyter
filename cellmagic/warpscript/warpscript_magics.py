@@ -15,6 +15,10 @@
 #
 
 """Implements cell magics related to WarpScript and Warp 10.
+
+    %%warpscript
+    %%warp10exec
+    %%warp10update
 """
 
 import re
@@ -66,15 +70,15 @@ class WarpscriptMagics(Magics):
     @argument('--not-verbose', '-v',
                 dest='verbose',
                 action='store_false',
-                help='If flag is used, do not print the output stack and log messages.')
+                help='If used, do not print the output stack and log messages.')
     @argument('--replace', '-r',
                 action='store_true',
-                help='If flag is used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.') 
+                help='If used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.') 
     @argument('--file', '-f',
-                help='Path of a file from which content is appended at the beginning of the WarpScript code.')
+                help='A file path. WarpScript code from this file will be executed before any WarpScript code in the cell.')
       
     def warpscript(self, line='', cell=''):
-        """Instanciates or retrieves a WarpScript stack and interacts with it. Requires that the Warp 10 platform embed the Py4J plugin.
+        """Instanciates or retrieves a WarpScript stack and interacts with it.
         """
 
         # parse inline arguments
