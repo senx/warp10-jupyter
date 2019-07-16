@@ -21,7 +21,7 @@ from py4j.java_gateway import get_method
 from py4j.java_gateway import launch_gateway
 from itertools import count
 
-WARP10_JAR = 'warp10-2.0.3/bin/warp10-2.0.3.jar'
+DEFAULT_WARP10_JAR = 'warp10-2.1.0.jar'
 
 class Gateway():
     """An object associated to a connection with a Java Gateway.
@@ -48,7 +48,7 @@ class Gateway():
             return self.instance
         
         if launch:
-            port = launch_gateway(classpath=WARP10_JAR)
+            port = launch_gateway(classpath=DEFAULT_WARP10_JAR)
             if verbose:
                 print('Local gateway launched on port ' + str(port))
             instance = JavaGateway(gateway_parameters=GatewayParameters(port, auto_convert=True))
