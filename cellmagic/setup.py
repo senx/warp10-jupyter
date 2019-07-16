@@ -17,7 +17,7 @@
 from setuptools import setup
 
 setup(name='warp10-jupyter',
-      version='0.3-rc0',
+      version='0.4',
       description='Jupyter extension that contains a cell magic to execute WarpScript code',
       url='http://github.com/senx/warp10-jupyter',
       author='Jean-Charles Vialatte',
