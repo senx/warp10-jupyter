@@ -108,11 +108,11 @@ class Stack(JavaObject):
             yield self.get(l)
     
     def __repr__(self):
-        lvl = count(0)
+        lvl = count(1)
         ret = ''
         for l in self:
             c = str(next(lvl))
-            if c == '0':
+            if c == '1':
                 ret += 'top: \t' + repr(l) +'\n'
             else:
                 ret += c + ': \t' + repr(l) +'\n'
