@@ -14,6 +14,7 @@
 #   limitations under the License.
 #
 
+import os
 from py4j.java_gateway import JavaGateway
 from py4j.java_gateway import GatewayParameters
 from py4j.java_gateway import JavaObject
@@ -30,32 +31,41 @@ class Gateway():
 
     ids = count(0)
 
-    def __init__(self, addr, port, conf={'warp.timeunits': 'us' }):
+    def __init__(self, addr, port, launch=False, verbose=True, conf={'warp.timeunits': 'us' }):
+
+        self.instance = None
+        self.entry_point = None
+        self.addr = addr
+        self.port = port
+        self.launch = launch
+        self.verbose = verbose
+        self.conf = conf # conf used by entry point when creating a stack
+        self.address = addr + ':' + str(port)
 
         # gateway and entry point
-        self.instance = self.get_instance(addr, port, verbose=True)
-        self.address = addr + ':' + str(port)
+        self.instance = self.get_instance()
         self.id = next(self.ids) # the id of the gateway
-        self.conf = conf # conf used by entry point when creating a stack
         self.entry_point = self.get_entry_point()
 
         # stack
         self.stack_dict = {} # store the stacks created by the Gateway
         self.default_stack_var = 'stack_' + str(self.id)
 
-    def get_instance(self, addr, port, verbose, launch=False):
+    def get_instance(self):
         if not(self.instance is None):
             return self.instance
         
-        if launch:
-            port = launch_gateway(classpath=DEFAULT_WARP10_JAR)
-            if verbose:
-                print('Local gateway launched on port ' + str(port))
-            instance = JavaGateway(gateway_parameters=GatewayParameters(port, auto_convert=True))
+        if self.launch:
+            my_path = os.path.abspath(os.path.dirname(__file__))
+            path = os.path.join(my_path, DEFAULT_WARP10_JAR)
+            self.port = launch_gateway(enable_auth=False,die_on_exit=True,classpath=path)
+            if self.verbose:
+                print('Local gateway launched on port ' + str(self.port))
+            instance = JavaGateway(gateway_parameters=GatewayParameters(port=self.port, auto_convert=True))
         else:
-            instance = JavaGateway(gateway_parameters=GatewayParameters(addr, port, auto_convert=True))
-        if verbose:
-            print('A connection was established with a gateway at ' + addr + ":" + str(port))
+            instance = JavaGateway(gateway_parameters=GatewayParameters(self.addr, self.port, auto_convert=True))
+            if self.verbose:
+                print('Establish connection with a gateway at ' + self.addr + ":" + str(self.port))
         
         return instance
 
@@ -63,12 +73,13 @@ class Gateway():
         if not(self.entry_point is None):
             return self.entry_point
 
-        # try first to use an entry point that was started in the Java side
-        try:
+        if not(self.launch):
+            # try to use an entry point that was started by a Warp 10 platform
             entry_point = self.get_instance().entry_point
-        
-        # if inexistant, then try to create an entry point provided warp10 jar is in the jvm classpath
-        except:
+            if not('newStack' in dir(entry_point)): # also, dir() raises an error if entry_point does not exist
+                raise RuntimeError('Wrong entry point')
+        else:
+            # if locally launched, try to create an entry point provided warp10 jar is in the jvm classpath
             entry_point = self.get_instance().jvm.io.warp10.Py4JEntryPoint(self.conf)
 
         return entry_point
@@ -78,18 +89,19 @@ class Gateway():
         or retrieve existing one.
         """
 
-        if var in vars():
+        if var in globals():
             self.stack_dict[var] = eval(var)
-            if verbose:
-                print('Reuse WarpScript stack under variable "' + var + '".')
+            #if verbose:
+                #print('Reuse WarpScript stack under variable "' + var + '".')
 
         if not(var in self.stack_dict.keys()):
-            self.stack_dict[var] = self.get_entry_point().newStack()
+            ep = self.get_entry_point()
+            self.stack_dict[var] = ep.newStack()
             if verbose:
                 print('Creating a new WarpScript stack accessible under variable "' + var + '".')
-        else:
-            if verbose:
-                print('Reuse WarpScript stack under variable "' + var + '".')
+        #else:
+            #if verbose:
+                #print('Reuse WarpScript stack under variable "' + var + '".')
         
         return self.stack_dict[var]
 
