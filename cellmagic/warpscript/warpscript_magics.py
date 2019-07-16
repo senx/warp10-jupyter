@@ -51,7 +51,7 @@ class WarpscriptMagics(Magics):
         if not(key in self.gateway_dict.keys()):
             self.gateway_dict[key] = Gateway(addr, port)
             if self.verbose:
-                print('Starting connection with ' + key + '.')
+                print('Establish connection with ' + key + '.')
         return self.gateway_dict[key]
 
     @line_cell_magic
