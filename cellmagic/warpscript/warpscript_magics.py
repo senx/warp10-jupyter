@@ -15,6 +15,10 @@
 #
 
 """Implements cell magics related to WarpScript and Warp 10.
+
+    %%warpscript
+    %%warp10exec
+    %%warp10update
 """
 
 import re
@@ -35,55 +39,51 @@ class WarpscriptMagics(Magics):
 
     def __init__(self, shell):
         super(WarpscriptMagics, self).__init__(shell)
-        self.gateway_dict = {} # the keys are ip:port
-        self.verbose = True
+        self.gateway_dict = {} # the keys are ip:port or local
+        self.last_var = ''
 
-    def get_gateway(self, addr, port):
-        """Creates a connection with a Java gateway located at specified address,
-        or retrieves existing one.
-        """
-
-        key = addr + ':' + str(port)
+    def get_gateway(self, addr, port, launch, verbose):
+        key = 'local' if launch else addr + ':' + str(port)
         if not(key in self.gateway_dict.keys()):
-            self.gateway_dict[key] = Gateway(addr, port)
-            if self.verbose:
-                print('Starting connection with ' + key + '.')
+            self.gateway_dict[key] = Gateway(addr, port, launch, verbose)
+
         return self.gateway_dict[key]
 
     @line_cell_magic
     @magic_arguments()
     @argument('--stack', '-s',
-                help='The variable that store the resulting WarpScript stack. For each connection, a new variable name creates a new stack. Default to "stack_<gateway_id>".')
+                default="stack",
+                help='The variable that references the WarpScript stack. Default to "stack".')
     @argument('--overwrite', '-o',
                 action='store_true',
-                help='If flag is used, overwrite existing stack stored under used variable with a new one.')
+                help='If flag is used, overwrite any object referenced under given variable with a new stack.')
+    @argument('--local', '-l',
+                dest='launch',
+                action='store_true',
+                help='Launch a local gateway instead of trying to connect to one. If launched this way, it is not connected to a Warp 10 platform.')
     @argument('--address', '-a',
                 default=DEFAULT_GATEWAY_ADDRESS,
-                help='The ip address of the gateway connected to the Warp 10 platform or WarpScript module. Default to 127.0.0.1.')
+                help='The ip address of the gateway to connect to. Default to 127.0.0.1.')
     @argument('--port', '-p',
                 default=DEFAULT_GATEWAY_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
     @argument('--not-verbose', '-v',
                 dest='verbose',
                 action='store_false',
-                help='If flag is used, do not print the output stack and log messages.')
+                help='Do not print stack and log messages.')
     @argument('--replace', '-r',
                 action='store_true',
-                help='If flag is used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.') 
+                help='If used, file paths surrounded by %% are replaced by their content. For example, %%token_file%% can be used not to expose a token in the notebook.') 
     @argument('--file', '-f',
-                help='Path of a file from which content is appended at the beginning of the WarpScript code.')
+                help='A file path. WarpScript code from this file will be executed before any WarpScript code from the cell.')
       
     def warpscript(self, line='', cell=''):
-        """Instanciates or retrieves a WarpScript stack and interacts with it. Requires that the Warp 10 platform embed the Py4J plugin.
+        """Instanciates or retrieves a WarpScript execution environment (a stack) and executes code with it.
         """
 
         # parse inline arguments
         args = parse_argstring(self.warpscript, line)
         self.verbose = args.verbose
-
-        # obtain gateway
-        gateway = self.get_gateway(args.address, args.port)
-        var = args.stack if not(args.stack is None) else gateway.default_stack_var
 
         # replace %file% patterns with file content
         if args.replace:
@@ -93,11 +93,31 @@ class WarpscriptMagics(Magics):
         if not(args.file is None):
             cell = open(args.file).read() + '\n' + cell
 
-        # obtain stack and execute it
-        if args.overwrite and var in gateway.stack_dict.keys():
-            gateway.instance.detach(gateway.stack_dict[var])
-            del gateway.stack_dict[var]
-        stack = gateway.get_stack(var, self.verbose)
+        # delete stack if overwrite
+        var = args.stack
+        if args.overwrite and var in self.shell.user_ns:
+            del self.shell.user_ns[var]
+
+        # obtain stack from variable if it is already referenced
+        if var in self.shell.user_ns:
+            stack = self.shell.user_ns[var]
+            #if self.verbose:
+                #print('Reuse WarpScript stack under variable "' + var + '".')
+
+        # or obtain it from a gateway
+        else:
+
+            # obtain gateway
+            gateway = self.get_gateway(args.address, args.port, args.launch, args.verbose)
+            var = args.stack if not(args.stack is None) else gateway.default_stack_var
+
+            # obtain stack
+            if args.overwrite and var in gateway.stack_dict.keys():
+                gateway.instance.detach(gateway.stack_dict[var])
+                del gateway.stack_dict[var]
+            stack = gateway.get_stack(var, self.verbose)
+
+        # execute WarpScript code
         try:
             stack.execMulti(cell)
         except Py4JJavaError as e:
