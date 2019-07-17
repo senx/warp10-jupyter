@@ -24,6 +24,6 @@ setup(name='warp10-jupyter',
       author_email='jean-charles.vialatte@senx.io',
       license='Apache 2.0',
       packages=['warpscript'],
-      install_requires=['py4j', 'jupyter'],
+      install_requires=['py4j', 'jupyter', 'requests', 'future'],
       zip_safe=False,
       include_package_data=True)
