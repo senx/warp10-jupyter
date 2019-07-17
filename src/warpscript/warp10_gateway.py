@@ -14,6 +14,18 @@
 #   limitations under the License.
 #
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
+from builtins import range
+from builtins import next
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+
 import os
 from py4j.java_gateway import JavaGateway
 from py4j.java_gateway import GatewayParameters
@@ -27,7 +39,7 @@ DEFAULT_LOCAL_LAUNCH_CONF = {}
 DEFAULT_LOCAL_LAUNCH_CONF['warp.timeunits'] = 'us'
 DEFAULT_LOCAL_LAUNCH_CONF['py4j.stack.nolimits'] = 'true'
 
-class Gateway():
+class Gateway(object):
     """An object associated to a connection with a Java Gateway.
     It can hold multiple active WarpScript stacks.
     """

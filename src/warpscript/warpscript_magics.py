@@ -21,6 +21,17 @@
     %%warp10update
 """
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
+from builtins import super
+from builtins import str
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
+
 import re
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.magic_arguments import (argument, magic_arguments, parse_argstring)
