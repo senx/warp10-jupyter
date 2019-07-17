@@ -27,6 +27,7 @@ from IPython.core.magic_arguments import (argument, magic_arguments, parse_argst
 from IPython.core.display import (display, HTML)
 from py4j.protocol import Py4JJavaError
 from py4j.java_gateway import JavaGateway
+from py4j.java_gateway import GatewayParameters
 import requests
 from .warp10_gateway import Gateway
 
@@ -43,10 +44,10 @@ class WarpscriptMagics(Magics):
         self.gateway_dict = {} # the keys are ip:port or local
         self.last_var = ''
 
-    def get_gateway(self, addr, port, launch, verbose):
+    def get_gateway(self, addr, port, launch, auth_token, verbose):
         key = 'local' if launch else addr + ':' + str(port)
         if not(key in self.gateway_dict.keys()):
-            self.gateway_dict[key] = Gateway(addr, port, launch, verbose)
+            self.gateway_dict[key] = Gateway(addr, port, launch, auth_token, verbose)
 
         return self.gateway_dict[key]
 
@@ -58,16 +59,18 @@ class WarpscriptMagics(Magics):
     @argument('--overwrite', '-o',
                 action='store_true',
                 help='If flag is used, overwrite any object referenced under given variable with a new stack.')
-    @argument('--local', '-l',
-                dest='launch',
-                action='store_true',
-                help='Launch a local gateway instead of trying to connect to one. If launched this way, it is not connected to a Warp 10 platform.')
     @argument('--address', '-a',
                 default=DEFAULT_GATEWAY_ADDRESS,
                 help='The ip address of the gateway to connect to. Default to 127.0.0.1.')
     @argument('--port', '-p',
                 default=DEFAULT_GATEWAY_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
+    @argument('--authtoken', '-t',
+                help='Authentication token used for gateway connection if requested.')
+    @argument('--local', '-l',
+                dest='launch',
+                action='store_true',
+                help='Launch a secured local gateway instead of trying to connect to one. If launched this way, it is not connected to a Warp 10 platform.')
     @argument('--not-verbose', '-v',
                 dest='verbose',
                 action='store_false',
@@ -109,7 +112,7 @@ class WarpscriptMagics(Magics):
         else:
 
             # obtain gateway
-            gateway = self.get_gateway(args.address, args.port, args.launch, args.verbose)
+            gateway = self.get_gateway(args.address, args.port, args.launch, args.authtoken, args.verbose)
             var = args.stack if not(args.stack is None) else gateway.default_stack_var
 
             # obtain stack
@@ -124,8 +127,7 @@ class WarpscriptMagics(Magics):
         except Py4JJavaError as e:
             # don't raise an error when a stop exception is caught
             if not('gateway' in vars()):
-                stack_ = stack
-                gw = JavaGateway(stack_._gateway_client, auto_convert=True)
+                gw = JavaGateway(stack._gateway_client, auto_convert=True)
             else:
                 gw = gateway.instance
             if not(gw.jvm.Class.forName("io.warp10.script.WarpScriptStopException").isInstance(e.java_exception)):
