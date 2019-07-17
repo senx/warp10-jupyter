@@ -15,7 +15,7 @@ Note that WarpScripts would not be able to use the `FETCH`, `FIND`, nor `FINDSTA
 From source:
 
 ```
-pip install -e cellmagic
+pip install -e src
 ```
 
 Or from PyPI:
