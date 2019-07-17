@@ -23,6 +23,9 @@ from py4j.java_gateway import launch_gateway
 from itertools import count
 
 DEFAULT_WARP10_JAR = 'warp10-2.1.0.jar'
+DEFAULT_LOCAL_LAUNCH_CONF = {}
+DEFAULT_LOCAL_LAUNCH_CONF['warp.timeunits'] = 'us'
+DEFAULT_LOCAL_LAUNCH_CONF['py4j.stack.nolimits'] = 'true'
 
 class Gateway():
     """An object associated to a connection with a Java Gateway.
@@ -31,7 +34,7 @@ class Gateway():
 
     ids = count(0)
 
-    def __init__(self, addr, port, launch=False, verbose=True, conf={'warp.timeunits': 'us' }):
+    def __init__(self, addr, port, launch=False, verbose=True, conf=DEFAULT_LOCAL_LAUNCH_CONF):
 
         self.instance = None
         self.entry_point = None
