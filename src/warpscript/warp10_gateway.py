@@ -34,13 +34,15 @@ class Gateway():
 
     ids = count(0)
 
-    def __init__(self, addr, port, launch=False, verbose=True, conf=DEFAULT_LOCAL_LAUNCH_CONF):
+    def __init__(self, addr, port, launch=False, auth_token=None, verbose=True, conf=DEFAULT_LOCAL_LAUNCH_CONF):
 
         self.instance = None
         self.entry_point = None
+
         self.addr = addr
         self.port = port
         self.launch = launch
+        self.auth_token = auth_token
         self.verbose = verbose
         self.conf = conf # conf used by entry point when creating a stack
         self.address = addr + ':' + str(port)
@@ -61,12 +63,12 @@ class Gateway():
         if self.launch:
             my_path = os.path.abspath(os.path.dirname(__file__))
             path = os.path.join(my_path, DEFAULT_WARP10_JAR)
-            self.port = launch_gateway(enable_auth=False,die_on_exit=True,classpath=path)
+            self.port, token = launch_gateway(enable_auth=True,die_on_exit=True,classpath=path)
             if self.verbose:
                 print('Local gateway launched on port ' + str(self.port))
-            instance = JavaGateway(gateway_parameters=GatewayParameters(port=self.port, auto_convert=True))
+            instance = JavaGateway(gateway_parameters=GatewayParameters(port=self.port, auto_convert=True, auth_token=token))
         else:
-            instance = JavaGateway(gateway_parameters=GatewayParameters(self.addr, self.port, auto_convert=True))
+            instance = JavaGateway(gateway_parameters=GatewayParameters(self.addr, self.port, auto_convert=True, auth_token=self.auth_token))
             if self.verbose:
                 print('Establish connection with a gateway at ' + self.addr + ":" + str(self.port))
         
