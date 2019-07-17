@@ -26,6 +26,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, li
 from IPython.core.magic_arguments import (argument, magic_arguments, parse_argstring)
 from IPython.core.display import (display, HTML)
 from py4j.protocol import Py4JJavaError
+from py4j.java_gateway import JavaGateway
 import requests
 from .warp10_gateway import Gateway
 
@@ -122,7 +123,12 @@ class WarpscriptMagics(Magics):
             stack.execMulti(cell)
         except Py4JJavaError as e:
             # don't raise an error when a stop exception is caught
-            if not(gateway.instance.jvm.Class.forName("io.warp10.script.WarpScriptStopException").isInstance(e.java_exception)):
+            if not('gateway' in vars()):
+                stack_ = stack
+                gw = JavaGateway(stack_._gateway_client, auto_convert=True)
+            else:
+                gw = gateway.instance
+            if not(gw.jvm.Class.forName("io.warp10.script.WarpScriptStopException").isInstance(e.java_exception)):
                 raise e
 
         # store resulting stack
