@@ -20,7 +20,7 @@ import os
 
 # setup
 setup(name='warp10-jupyter',
-      version='0.5.1',
+      version='0.6',
       description='Jupyter extension that contains a cell magic to execute WarpScript code',
       url='http://github.com/senx/warp10-jupyter',
       author='Jean-Charles Vialatte',
@@ -29,8 +29,7 @@ setup(name='warp10-jupyter',
       packages=['warpscript'],
       install_requires=['py4j', 'jupyter', 'requests', 'future'],
       setup_requires=['requests'],
-      zip_safe=False,
-      include_package_data=True)
+      zip_safe=False)
 
 # import requests after setup() eventually downloads it
 import requests
