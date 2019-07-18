@@ -34,7 +34,7 @@ from py4j.java_gateway import get_method
 from py4j.java_gateway import launch_gateway
 from itertools import count
 
-from .warp10_version import WARP10_JAR_PATH
+from .warp10_version import get_Warp10_jar_path
 
 DEFAULT_LOCAL_LAUNCH_CONF = {}
 DEFAULT_LOCAL_LAUNCH_CONF['warp.timeunits'] = 'us'
@@ -74,7 +74,7 @@ class Gateway(object):
             return self.instance
         
         if self.launch:
-            self.port, token = launch_gateway(enable_auth=True,die_on_exit=True,classpath=WARP10_JAR_PATH)
+            self.port, token = launch_gateway(enable_auth=True,die_on_exit=True,classpath=get_Warp10_jar_path())
             if self.verbose:
                 print('Local gateway launched on port ' + str(self.port))
             instance = JavaGateway(gateway_parameters=GatewayParameters(port=self.port, auto_convert=True, auth_token=token))

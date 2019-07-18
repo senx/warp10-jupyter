@@ -14,7 +14,10 @@
 #   limitations under the License.
 #
 
+from __future__ import print_function
 import os
+import tarfile
+import requests
 
 # version
 REV = '2.1.0'
@@ -34,3 +37,24 @@ WARP10_JAR_PATH = os.path.abspath(os.path.join(DIR, WARP10_JAR))
 # url
 REPO = 'https://dl.bintray.com/senx/generic/io/warp10/warp10/' + REV + '/'
 URL = REPO + TAR
+
+# download and get
+def get_Warp10_jar_path():
+
+    if not(os.path.exists(WARP10_JAR_PATH)):
+        if not(os.path.exists(TAR_PATH)):
+            print("Downloading Warp 10 archive ...")
+            r = requests.get(URL, stream = True)
+            with open(TAR_PATH,"wb") as tarFile: 
+                    for chunk in r.iter_content(chunk_size=4096):  
+                        if chunk: 
+                                tarFile.write(chunk) 
+
+        # untar warp 10
+        if not(os.path.exists(WARP10_JAR_PATH)):
+            with tarfile.open(TAR_PATH) as tarFile:
+                    tarFile.extract(WARP10_JAR, DIR)
+        if os.path.exists(TAR_PATH):
+            os.remove(TAR_PATH)
+    
+    return WARP10_JAR_PATH
