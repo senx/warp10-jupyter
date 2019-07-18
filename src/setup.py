@@ -15,9 +15,12 @@
 #
 
 from setuptools import setup
+import tarfile
+import os
 
+# setup
 setup(name='warp10-jupyter',
-      version='0.5',
+      version='0.5.1',
       description='Jupyter extension that contains a cell magic to execute WarpScript code',
       url='http://github.com/senx/warp10-jupyter',
       author='Jean-Charles Vialatte',
@@ -25,5 +28,25 @@ setup(name='warp10-jupyter',
       license='Apache 2.0',
       packages=['warpscript'],
       install_requires=['py4j', 'jupyter', 'requests', 'future'],
+      setup_requires=['requests'],
       zip_safe=False,
       include_package_data=True)
+
+# import requests after setup() eventually downloads it
+import requests
+from warpscript.warp10_version import TAR_PATH, URL, DIR, WARP10_JAR, WARP10_JAR_PATH
+
+# download
+if not(os.path.exists(TAR_PATH) or os.path.exists(WARP10_JAR_PATH)):
+      r = requests.get(URL, stream = True)
+      with open(TAR_PATH,"wb") as tarFile: 
+            for chunk in r.iter_content(chunk_size=4096):  
+                  if chunk: 
+                        tarFile.write(chunk) 
+
+# untar warp 10
+if not(os.path.exists(WARP10_JAR_PATH)):
+      with tarfile.open(TAR_PATH) as tarFile:
+            tarFile.extract(WARP10_JAR, DIR)
+if os.path.exists(TAR_PATH):
+      os.remove(TAR_PATH)

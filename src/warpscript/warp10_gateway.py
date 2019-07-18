@@ -34,7 +34,8 @@ from py4j.java_gateway import get_method
 from py4j.java_gateway import launch_gateway
 from itertools import count
 
-DEFAULT_WARP10_JAR = 'warp10-2.1.0.jar'
+from .warp10_version import WARP10_JAR_PATH
+
 DEFAULT_LOCAL_LAUNCH_CONF = {}
 DEFAULT_LOCAL_LAUNCH_CONF['warp.timeunits'] = 'us'
 DEFAULT_LOCAL_LAUNCH_CONF['py4j.stack.nolimits'] = 'true'
@@ -73,9 +74,7 @@ class Gateway(object):
             return self.instance
         
         if self.launch:
-            my_path = os.path.abspath(os.path.dirname(__file__))
-            path = os.path.join(my_path, DEFAULT_WARP10_JAR)
-            self.port, token = launch_gateway(enable_auth=True,die_on_exit=True,classpath=path)
+            self.port, token = launch_gateway(enable_auth=True,die_on_exit=True,classpath=WARP10_JAR_PATH)
             if self.verbose:
                 print('Local gateway launched on port ' + str(self.port))
             instance = JavaGateway(gateway_parameters=GatewayParameters(port=self.port, auto_convert=True, auth_token=token))
