@@ -41,7 +41,7 @@ class Warp10_Downloader_dev(develop):
             get_Warp10_jar_path()
             develop.run(self)
 
-with open("../README.md", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='warp10-jupyter',
