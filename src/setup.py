@@ -45,7 +45,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='warp10-jupyter',
-      version='0.6.3',
+      version='0.6.4',
       description='Jupyter extension that contains a cell magic to execute WarpScript code',
       long_description=long_description,
       long_description_content_type="text/markdown",
