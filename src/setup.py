@@ -41,9 +41,14 @@ class Warp10_Downloader_dev(develop):
             get_Warp10_jar_path()
             develop.run(self)
 
+with open("../README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='warp10-jupyter',
       version='0.6.3',
       description='Jupyter extension that contains a cell magic to execute WarpScript code',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       url='http://github.com/senx/warp10-jupyter',
       author='Jean-Charles Vialatte',
       author_email='jean-charles.vialatte@senx.io',
