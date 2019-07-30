@@ -1,6 +1,8 @@
 # warp10-jupyter #
 
-Jupyter extension that consists in the cell magic `%%warpscript` that executes WarpScript code from Python.
+Can be loaded as a Jupyter extension `%load_ext warpscript`, which provides the cell magic `%%warpscript` that executes WarpScript code.
+
+Can be imported as `import warpscript`, which provides `newStack()` and `newLocalStack()` that create a WarpScript execution environment (a stack).
 
 ### Requirements ###
 
@@ -8,7 +10,7 @@ Require Py4J and Jupyter.
 
 To execute WarpScript code on a Warp 10 platform with this extension, the platform must embed the [Py4J plugin](https://gitlab.com/senx/warp10-plugin-py4j). To enable `FETCH`, `FIND`, and `FINDSTATS` functions on this platform, set `egress.clients.expose=true`.
 
-Warpscript code can also be executed locally (without a warp 10 platform) using `--local/-l`.
+Warpscript code can also be executed locally (without a warp 10 platform) using `%%warpscript --local/-l` or `newLocalStack()`.
 
 ### Installation ###
 

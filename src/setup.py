@@ -46,7 +46,7 @@ with open("README.md", "r") as fh:
 
 setup(name='warp10-jupyter',
       version='0.7',
-      description='Jupyter extension that contains a cell magic to execute WarpScript code',
+      description='Functions and Jupyter extension for executing WarpScript code',
       long_description=long_description,
       long_description_content_type="text/markdown",
       url='http://github.com/senx/warp10-jupyter',
