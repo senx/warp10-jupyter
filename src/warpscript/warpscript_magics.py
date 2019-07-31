@@ -41,6 +41,7 @@ from py4j.java_gateway import JavaGateway
 from py4j.java_gateway import GatewayParameters
 import requests
 from .warp10_gateway import Gateway
+from warnings import warn
 
 DEFAULT_GATEWAY_ADDRESS = '127.0.0.1'
 DEFAULT_GATEWAY_PORT = 25333
@@ -71,10 +72,8 @@ class WarpscriptMagics(Magics):
                 action='store_true',
                 help='If flag is used, overwrite any object referenced under given variable with a new stack.')
     @argument('--address', '-a',
-                default=DEFAULT_GATEWAY_ADDRESS,
                 help='The ip address of the gateway to connect to. Default to 127.0.0.1.')
     @argument('--port', '-p',
-                default=DEFAULT_GATEWAY_PORT,
                 help='The corresponding port of the gateway. Default to 25333.')
     @argument('--authtoken', '-t',
                 help='Authentication token used for gateway connection if requested.')
@@ -119,8 +118,28 @@ class WarpscriptMagics(Magics):
             #if self.verbose:
                 #print('Reuse WarpScript stack under variable "' + var + '".')
 
+            if args.address is not None:
+                warn('Value of --adress/a is ignored since the previously created stack "' + var + '" is reused.')
+            
+            if args.port is not None:
+                warn('Value of --port/p is ignored since the previously created stack "' + var + '" is reused.')
+
+            if args.authtoken is not None:
+                warn('Value of --authtoken/t is ignored since the previously created stack "' + var + '" is reused.')
+
+            if args.launch:
+                warn('Flag --local/l is ignored since the previously created stack "' + var + '" is reused.')
+
         # or obtain it from a gateway
         else:
+
+            if args.address is None:
+                args.address = DEFAULT_GATEWAY_ADDRESS
+
+            if args.port is None:
+                args.port = DEFAULT_GATEWAY_PORT
+            else:
+                args.port = int(args.port)
 
             # obtain gateway
             gateway = self.get_gateway(args.address, args.port, args.launch, args.authtoken, args.verbose)
